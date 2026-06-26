@@ -23,7 +23,7 @@ function pesquisar() {
         return;
     }
     
-    // Monta a exibição dos cards com os novos campos
+    // Monta a exibição dos cards contendo apenas as informações básicas solicitadas
     resultado.innerHTML = encontrados.map(item => `
         <div class="card">
             <div class="card-row"><b>Fornecedor:</b> <span>${item.Fornecedor || '-'}</span></div>
@@ -31,10 +31,6 @@ function pesquisar() {
             <div class="card-row"><b>Identificação:</b> <span>${item.Identificação || '-'}</span></div>
             <div class="card-row"><b>Status:</b> <span>${item.Status || '-'}</span></div>
             <div class="card-row"><b>Organização:</b> <span>${item.ORGANIZAÇÃO || '-'}</span></div>
-            <div class="card-highlight">
-                <div class="metric"><strong>Teor Cu:</strong> ${item.Teor_Cu}</div>
-                <div class="metric"><strong>Teor Zn:</strong> ${item.Teor_Zn}</div>
-            </div>
         </div>
     `).join('');
 }
