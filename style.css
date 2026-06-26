@@ -79,10 +79,15 @@ button:active {
     border-left: 5px solid #a0aec0;
 }
 
-/* DESTAQUE VERDE PARA ESTOQUE */
+/* CORES DOS CARDS POR STATUS */
 .card.status-estoque {
     border-left-color: #38a169;
     background-color: #f0fff4;
+}
+
+.card.status-atencao {
+    border-left-color: #e53e3e;
+    background-color: #fff5f5;
 }
 
 .card.error {
@@ -117,7 +122,41 @@ button:active {
     font-weight: 600;
 }
 
-/* Estilo para destacar os valores de Teores */
-.teor-highlight {
-    color: #2b6cb0 !important;
+/* GRUPO DE TEORES - LADO A LADO NO FINAL DO CARD */
+.teores-container {
+    display: block; /* Fallback safe para WeasyPrint/Browsers antigos se houver, mas usaremos table layouts nativos em HTML inline se necessário, no app roda perfeito */
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 2px dashed #e2e8f0;
+}
+
+.teores-row {
+    display: table;
+    width: 100%;
+}
+
+.teor-col {
+    display: table-cell;
+    width: 50%;
+    text-align: center;
+}
+
+.teor-col:first-child {
+    border-right: 1px solid #edf2f7;
+}
+
+.teor-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #718096;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.teor-valor {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2b6cb0;
 }

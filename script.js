@@ -1,4 +1,4 @@
-const URL_JSON = "dados_bags.json";
+const URL_JSON = "dados.json";
 
 let dados = [];
 
@@ -11,10 +11,10 @@ fetch(URL_JSON)
   })
   .then(data => {
       dados = data;
-      console.log("Banco de dados sincronizado com sucesso! Total:", dados.length);
+      console.log("Banco de dados local atualizado! Total:", dados.length);
   })
   .catch(err => {
-      console.error("Falha ao inicializar o banco de dados JSON:", err);
+      console.error("Falha ao ler o arquivo dados.json:", err);
   });
 
 function pesquisar() {
@@ -46,27 +46,46 @@ function pesquisar() {
         const status = String(item['Status'] || '').trim();
         const organizacao = item['ORGANIZAÇÃO'] || item['Organização'] || '-';
         
-        // Captura dos Teores solicitados
         const teorCu = item['Teor Cu'] !== undefined ? item['Teor Cu'] : '-';
         const teorZn = item['Teor Zn'] !== undefined ? item['Teor Zn'] : '-';
 
-        // Formatação dos teores para exibirem casas decimais amigáveis se forem números
         const teorCuFormated = typeof teorCu === 'number' ? teorCu.toFixed(2) + '%' : teorCu;
         const teorZnFormated = typeof teorZn === 'number' ? teorZn.toFixed(2) + '%' : teorZn;
 
-        // Classe CSS condicional para destacar ESTOQUE em verde
-        const isEstoque = status.toUpperCase() === 'ESTOQUE';
-        const cardClasse = isEstoque ? 'card status-estoque' : 'card';
+        // Regras condicionais de cores baseadas no Status
+        const statusUpper = status.toUpperCase();
+        let cardClasse = 'card';
+        let statusStyle = '';
+
+        if (statusUpper === 'ESTOQUE') {
+            cardClasse = 'card status-estoque';
+            statusStyle = 'color: #2f855a; font-weight: bold;';
+        } else if (statusUpper === 'UTILIZADO' || statusUpper === 'EXPEDIDO') {
+            cardClasse = 'card status-atencao';
+            statusStyle = 'color: #c53030; font-weight: bold;';
+        }
 
         return `
             <div class="${cardClasse}">
                 <div class="card-row"><b>Fornecedor:</b> <span>${fornecedor}</span></div>
                 <div class="card-row"><b>Oferta:</b> <span>${oferta}</span></div>
                 <div class="card-row"><b>Identificação:</b> <span>${identificacao}</span></div>
-                <div class="card-row"><b>Teor Cu:</b> <span class="teor-highlight">${teorCuFormated}</span></div>
-                <div class="card-row"><b>Teor Zn:</b> <span class="teor-highlight">${teorZnFormated}</span></div>
-                <div class="card-row"><b>Status:</b> <span style="${isEstoque ? 'color: #2f855a; font-weight: bold;' : ''}">${status}</span></div>
+                <div class="card-row"><b>Status:</b> <span style="${statusStyle}">${status}</span></div>
                 <div class="card-row"><b>Organização:</b> <span>${organizacao}</span></div>
+                
+                <!-- Teores centralizados lado a lado no final do card -->
+                <div class="teores-container">
+                    <div class="teores-row">
+                        <div class="teor-col">
+                            <span class="teor-label">Teor Cu</span>
+                            <span class="teor-valor">${teorCuFormated}</span>
+                        </div>
+                        <div class="teor-col">
+                            <span class="teor-label">Teor Zn</span>
+                            <span class="teor-valor">${teorZnFormated}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
     }).join('');
