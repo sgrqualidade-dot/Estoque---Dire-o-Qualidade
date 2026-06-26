@@ -1,62 +1,37 @@
-const URL_PLANILHA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTmDsmrzPZh2-6ePXYriyVqrNZ5c-w9qVATeK7i6CXZH7v9Q49Ned21EkGUfzxjyeKDj85v8o3Rhx_Q/pub?gid=0&single=true&output=csv";
+const URL_JSON = "dados_bags.json";
 
 let dados = [];
 
-function processarCSV(texto) {
-    if (!texto) return [];
-    const linhas = texto.split(/\r?\n/);
-    if (linhas.length === 0) return [];
-
-    function separarColunas(linha) {
-        const resultado = [];
-        let dentroDeAspas = false;
-        let colunaAtual = "";
-        for (let i = 0; i < line.length; i++) {
-            let caractere = linha[i];
-            if (caractere === '"') {
-                dentroDeAspas = !dentroDeAspas;
-            } else if (caractere === ',' && !dentroDeAspas) {
-                resultado.push(colunaAtual.trim());
-                colunaAtual = "";
-            } else {
-                colunaAtual += caractere;
-            }
-        }
-        resultado.push(colunaAtual.trim());
-        return resultado;
-    }
-
-    const cabecalho = separarColunas(linhas[0]).map(c => c.trim());
-
-    return linhas.slice(1).filter(l => l.trim() !== "").map(linha => {
-        const valores = separarColunas(linha);
-        let item = {};
-        cabecalho.forEach((coluna, index) => {
-            item[coluna] = valores[index] !== undefined ? valores[index] : "";
-        });
-        return item;
-    });
-}
-
-fetch(URL_PLANILHA)
-  .then(response => response.text())
-  .then(textoCSV => {
-      dados = processarCSV(textoCSV);
+fetch(URL_JSON)
+  .then(response => {
+      if (!response.ok) {
+          throw new Error("Erro de rede ao carregar o arquivo JSON");
+      }
+      return response.json();
   })
-  .catch(err => console.error("Erro ao carregar dados do Google Sheets:", err));
+  .then(data => {
+      dados = data;
+      console.log("Banco de dados sincronizado com sucesso! Total:", dados.length);
+  })
+  .catch(err => {
+      console.error("Falha ao inicializar o banco de dados JSON:", err);
+  });
 
 function pesquisar() {
-    const peso = document.getElementById('peso').value.trim();
+    const pesoInput = document.getElementById('peso').value.trim();
     const resultado = document.getElementById('resultado');
     
-    if (!peso) {
+    if (!pesoInput) {
         resultado.innerHTML = '<div class="card error">Por favor, insira um peso para buscar.</div>';
         return;
     }
     
+    const pesoProcuradoNum = parseFloat(pesoInput);
+
     const encontrados = dados.filter(item => {
-        const valorPeso = String(item['Peso'] || item['PESO'] || '').trim();
-        return valorPeso === peso;
+        if (item['Peso'] === undefined || item['Peso'] === null || item['Peso'] === '') return false;
+        const pesoPlanilhaNum = parseFloat(item['Peso']);
+        return pesoPlanilhaNum === pesoProcuradoNum;
     });
     
     if (encontrados.length === 0) {
@@ -65,25 +40,33 @@ function pesquisar() {
     }
     
     resultado.innerHTML = encontrados.map(item => {
-        const fornecedor = item['Fornecedor'] || item['Fornecedor '] || '-';
+        const fornecedor = item['Fornecedor '] || item['Fornecedor'] || '-';
+        const oferta = item['Oferta'] || '-';
+        const identificacao = item['Identificação'] || '-';
+        const status = String(item['Status'] || '').trim();
         const organizacao = item['ORGANIZAÇÃO'] || item['Organização'] || '-';
         
-        let teorCu = item['Teor Cu'] || '0.00%';
-        let teorZn = item['Teor Zn'] || '0.00%';
-        if (!isNaN(teorCu) && teorCu !== '') teorCu = parseFloat(teorCu).toFixed(2) + '%';
-        if (!isNaN(teorZn) && teorZn !== '') teorZn = parseFloat(teorZn).toFixed(2) + '%';
+        // Captura dos Teores solicitados
+        const teorCu = item['Teor Cu'] !== undefined ? item['Teor Cu'] : '-';
+        const teorZn = item['Teor Zn'] !== undefined ? item['Teor Zn'] : '-';
+
+        // Formatação dos teores para exibirem casas decimais amigáveis se forem números
+        const teorCuFormated = typeof teorCu === 'number' ? teorCu.toFixed(2) + '%' : teorCu;
+        const teorZnFormated = typeof teorZn === 'number' ? teorZn.toFixed(2) + '%' : teorZn;
+
+        // Classe CSS condicional para destacar ESTOQUE em verde
+        const isEstoque = status.toUpperCase() === 'ESTOQUE';
+        const cardClasse = isEstoque ? 'card status-estoque' : 'card';
 
         return `
-            <div class="card">
-                <div class="card-row"><b>Fornecedor:</b> <span>\${fornecedor}</span></div>
-                <div class="card-row"><b>Oferta:</b> <span>\${item['Oferta'] || '-'}</span></div>
-                <div class="card-row"><b>Identificação:</b> <span>\${item['Identificação'] || '-'}</span></div>
-                <div class="card-row"><b>Status:</b> <span>\${item['Status'] || '-'}</span></div>
-                <div class="card-row"><b>Organização:</b> <span>\${organizacao}</span></div>
-                <div class="card-highlight">
-                    <div class="metric"><strong>Teor Cu:</strong> \${teorCu}</div>
-                    <div class="metric"><strong>Teor Zn:</strong> \${teorZn}</div>
-                </div>
+            <div class="${cardClasse}">
+                <div class="card-row"><b>Fornecedor:</b> <span>${fornecedor}</span></div>
+                <div class="card-row"><b>Oferta:</b> <span>${oferta}</span></div>
+                <div class="card-row"><b>Identificação:</b> <span>${identificacao}</span></div>
+                <div class="card-row"><b>Teor Cu:</b> <span class="teor-highlight">${teorCuFormated}</span></div>
+                <div class="card-row"><b>Teor Zn:</b> <span class="teor-highlight">${teorZnFormated}</span></div>
+                <div class="card-row"><b>Status:</b> <span style="${isEstoque ? 'color: #2f855a; font-weight: bold;' : ''}">${status}</span></div>
+                <div class="card-row"><b>Organização:</b> <span>${organizacao}</span></div>
             </div>
         `;
     }).join('');
