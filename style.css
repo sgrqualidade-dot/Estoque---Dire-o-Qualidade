@@ -15,7 +15,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 500px; /* Perfeito para telas de celular */
+    max-width: 500px;
     margin-top: 10px;
 }
 
@@ -93,12 +93,6 @@ button:active {
     padding-bottom: 4px;
 }
 
-.card-row:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
 .card-row b {
     color: #4a5568;
 }
@@ -106,4 +100,27 @@ button:active {
 .card-row span {
     color: #1a202c;
     font-weight: 500;
+}
+
+.card-highlight {
+    margin-top: 12px;
+    background-color: #ebf8ff;
+    border-radius: 6px;
+    padding: 10px;
+    display: table;
+    width: 100%;
+}
+
+.metric {
+    display: table-cell;
+    width: 50%;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #2b6cb0;
+}
+
+.metric strong {
+    display: block;
+    font-size: 1rem;
+    color: #2c5282;
 }
